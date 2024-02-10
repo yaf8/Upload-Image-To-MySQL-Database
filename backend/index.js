@@ -142,6 +142,32 @@ app.post("/api/save-to-database", upload.single('file'), (req, res) => {
   }
 });
 
+app.get("/api/download-from-database", (req, res) => {
+  const fileId = 12;
+
+  // Query the database to retrieve the blob data based on the file ID
+  const sql = "SELECT * FROM files WHERE id = ?";
+  db.query(sql, [fileId], (err, result) => {
+    if (err) {
+      console.error("Error retrieving file from database:", err);
+      return res.status(500).json({ message: 'Error retrieving file from database' });
+    }
+
+    if (result.length === 0) {
+      // If no file is found with the provided ID, return a 404 Not Found response
+      return res.status(404).json({ message: 'File not found' });
+    }
+
+    // Extract the blob data from the database result
+    const fileData = result[0].pdf; // Assuming the file is stored in a column named 'pdf'
+
+    // Set the appropriate content type header based on the file type
+    res.setHeader('Content-Type', 'application/pdf'); // Adjust as needed for different file types
+
+    // Send the blob data as the response body
+    res.send(fileData);
+  });
+});
 
 
 app.get("/", (req, res) => {
