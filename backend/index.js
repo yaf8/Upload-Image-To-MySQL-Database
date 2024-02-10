@@ -142,8 +142,8 @@ app.post("/api/save-to-database", upload.single('file'), (req, res) => {
   }
 });
 
-app.get("/api/download-from-database", (req, res) => {
-  const fileId = 12;
+app.get("/api/download-from-database/:fileId", (req, res) => {
+  const fileId = req.params.fileId;
 
   // Query the database to retrieve the blob data based on the file ID
   const sql = "SELECT * FROM files WHERE id = ?";
@@ -159,15 +159,16 @@ app.get("/api/download-from-database", (req, res) => {
     }
 
     // Extract the blob data from the database result
-    const fileData = result[0].pdf; // Assuming the file is stored in a column named 'pdf'
+    const fileData = result[0].image; // Assuming the file is stored in a column named 'image'
 
     // Set the appropriate content type header based on the file type
-    res.setHeader('Content-Type', 'application/pdf'); // Adjust as needed for different file types
+    res.setHeader('Content-Type', 'image/jpeg'); // Adjust as needed for different file types
 
     // Send the blob data as the response body
     res.send(fileData);
   });
 });
+
 
 
 app.get("/", (req, res) => {

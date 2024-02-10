@@ -1,48 +1,51 @@
-/* eslint-disable no-unused-vars */
-import React from 'react';
+import React from "react";
+import axios from "axios";
+import RootURL from "../helper/URL/RootURL";
 
 function FileDownloadDatabase() {
+  const [imageSrc, setImageSrc] = React.useState(null);
+  const [dbId, setDbId] = React.useState(0);
+
   const downloadFile = async () => {
     try {
-      // Replace '1' with the actual file ID you want to download
-      const fileId = 1;
-      
-      // Make a GET request to the endpoint that serves the file
-      const response = await fetch(`/api/download`);
-      
+
+      // Make a GET request to the endpoint that serves the image file
+      const response = await axios.get(
+        `${RootURL}/api/download-from-database/${dbId}`,
+        {
+          responseType: "blob", // Set the response type to blob
+        }
+      );
+
       // Check if the request was successful
-      if (response.ok) {
-        // Extract the file name from the response headers
-        const fileName = response.headers.get('Content-Disposition').split('filename=')[1];
-        
-        // Convert the blob response to a blob object
-        const blob = await response.blob();
-        
+      if (response.status === 200) {
         // Create a temporary URL for the blob object
-        const url = window.URL.createObjectURL(blob);
-        
-        // Create an anchor element to trigger the download
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', fileName || 'file');
-        
-        // Append the anchor element to the document body and click it to trigger the download
-        document.body.appendChild(link);
-        link.click();
-        
-        // Remove the anchor element from the document body
-        document.body.removeChild(link);
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        setImageSrc(url);
       } else {
-        console.error('Failed to download file:', response.statusText);
+        console.error("Failed to download file:", response.statusText);
       }
     } catch (error) {
-      console.error('An error occurred while downloading file:', error);
+      console.error("An error occurred while downloading file:", error);
     }
   };
 
   return (
     <div>
-      <button onClick={downloadFile}>Download File</button>
+      <input
+        type="number"
+        value={dbId}
+        onChange={(e) => setDbId(e.target.value)}
+      />
+      <button onClick={downloadFile}>Download Image</button>
+      <br />
+      {imageSrc && (
+        <img
+          src={imageSrc}
+          style={{ width: "200px", height: "200px" }}
+          alt="Downloaded Image"
+        />
+      )}
     </div>
   );
 }
