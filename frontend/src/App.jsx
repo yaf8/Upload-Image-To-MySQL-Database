@@ -1,6 +1,7 @@
 import "./App.css";
 import FileDownload from "./components/FileDownload";
 import FileUpload from "./components/FileUpload";
+import FileUploadForm from "./components/FileUploadForm";
 
 function App() {
   return (
@@ -9,6 +10,7 @@ function App() {
 
       <FileUpload />
       <FileDownload />
+      <FileUploadForm />
     </div>
     </>
   );

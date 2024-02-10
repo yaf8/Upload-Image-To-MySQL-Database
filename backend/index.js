@@ -3,10 +3,47 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
+const mysql = require("mysql");
+const cookieParser = require("cookie-parser");
 
 const app = express();
-app.use(cors());
-const port = 3009;
+const port = 4002;
+
+app.use(express.json());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "http://localhost:5175",
+      "http://localhost:5176",
+      "http://localhost:5177",
+    ],
+    methods: ["POST", "GET", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+app.use(cookieParser());
+
+//local database
+const db = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "upload_blob",
+});
+
+try {
+  db.connect((err) => {
+    if (err) {
+      console.error("Database connection error: " + err.stack);
+      return;
+    }
+    console.log("Connected to MySQL database");
+  });
+} catch (err) {
+  console.log("Database connection error: " + err.stack);
+}
 
 const uploadDir = path.join(__dirname, 'uploads');
 
@@ -70,6 +107,42 @@ app.get("/download/:fileName", (req, res) => {
     res.status(404).json({ message: 'File not found' });
   }
 });
+
+
+
+app.post("/api/save-to-database", upload.single('file'), (req, res) => {
+  try {
+    // Access the uploaded file using req.file
+    if (req.file) {
+      const { pdf, image, json } = req.body; // Assuming you have other data along with the file
+
+      // Read the file data from the uploaded file
+      const fileData = fs.readFileSync(req.file.path);
+
+      // Prepare the SQL query to insert the file data into the database
+      const sql = "INSERT INTO files (pdf, image, json) VALUES (?, ?, ?)";
+      
+      // Execute the SQL query
+      db.query(sql, [fileData, image, json], (err, result) => {
+        if (err) {
+          console.error("Error inserting file into database:", err);
+          res.status(500).json({ message: 'Error saving file to database' });
+        } else {
+          console.log("File inserted into database successfully");
+          res.status(200).json({ message: 'File saved to database successfully' });
+        }
+      });
+    } else {
+      // No file was provided
+      res.status(400).json({ message: 'No file provided' });
+    }
+  } catch (error) {
+    console.error("An error occurred while saving file to database:", error);
+    res.status(500).json({ message: 'Error saving file to database' });
+  }
+});
+
+
 
 app.get("/", (req, res) => {
   res.send("Upload file ready!");
