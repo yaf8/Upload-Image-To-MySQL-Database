@@ -140,7 +140,9 @@ app.post("/api/save-to-database", upload.single("file"), async (req, res) => {
       console.log("File inserted into database successfully", result);
       return res
         .status(200)
-        .json({ message: "File saved to database successfully : " + result.insertId });
+        .json({
+          message: "File saved to database successfully : " + result.insertId,
+        });
     } else {
       // No file was provided
       res.status(400).json({ message: "No file provided" });
@@ -191,7 +193,7 @@ app.get("/api/download-from-database/:fileId", async (req, res) => {
 app.post(
   "/api/upload",
   upload.fields([{ name: "image" }, { name: "jsonData" }]),
-  (req, res) => {
+  async (req, res) => {
     try {
       const imageFile = req.files["image"][0]; // Access the image file
       const jsonData = JSON.parse(req.body.jsonData); // Access the JSON data
@@ -200,6 +202,7 @@ app.post(
 
       console.log("jsonData:", jsonData);
       console.log("imageFile:", imageFile); // Log the image file path and buffer to the console
+      console.log("name : ", jsonData.name); // Log the name
 
       console.log("fieldNames:", imageFile.fieldname);
       console.log("originalName:", imageFile.originalname);
@@ -210,9 +213,35 @@ app.post(
 
       console.log("fileData:", fileData);
 
-      res
-        .status(200)
-        .json({ message: "File and JSON data uploaded successfully" });
+      const connection = await pool.getConnection();
+      const userQuery = "INSERT INTO users (name, email) VALUES (?, ?)";
+      try {
+        const [result] = await connection.query(userQuery, [
+          jsonData.name,
+          jsonData.email,
+        ]);
+
+        const userId = result.insertId;
+
+        const fileQuery =
+          "INSERT INTO files_meta (file_data, file_name, mime_type, user_id) VALUES (?, ?, ?, ?)";
+        const [fileResult] = await connection.query(fileQuery, [
+          fileData,
+          imageFile.originalname,
+          imageFile.mimetype,
+          userId,
+        ]);
+        console.log("fileResult:", fileResult);
+
+        res
+          .status(200)
+          .json({ message: "File and JSON data uploaded successfully" });
+      } catch (error) {
+        console.error("Error saving file to database:", error);
+        res.status(500).json({ message: "Error saving file to database" });
+      } finally {
+        connection.release();
+      }
     } catch (error) {
       console.error("Error uploading file:", error);
       res.status(500).json({ message: "Internal server error" });
