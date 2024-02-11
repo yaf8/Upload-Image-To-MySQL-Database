@@ -15,6 +15,8 @@ function FileUploadForm() {
       const formData = new FormData();
       formData.append('file', file);
 
+      console.log("Form Data:", formData);
+
       // Send the file to the server
       const response = await axios.post(RootURL + '/api/save-to-database', formData, {
         headers: {
