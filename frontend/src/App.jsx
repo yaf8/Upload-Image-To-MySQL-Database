@@ -24,7 +24,7 @@ function App() {
         {/* <FileDownload /> */}
         <FileUploadForm />
         <div style={{ margin: 4, gap: "16px" }}>
-          {/* <FileDownloadDatabase /> */}
+          <FileDownloadDatabase />
         </div>
       </div>
     </>

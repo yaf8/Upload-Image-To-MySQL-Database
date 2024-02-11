@@ -18,21 +18,21 @@ function UploadForm() {
 
   const handleSubmit = async () => {
     try {
+      setJsonData({
+        name: name,
+        email: email,
+      });
       const formData = new FormData();
       formData.append("image", selectedImage);
       formData.append("jsonData", JSON.stringify(jsonData));
       formData.append("name", name);
       formData.append("email", email);
 
-      const response = await axios.post(
-        RootURL + "/api/upload",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await axios.post(RootURL + "/api/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       console.log(response.data);
     } catch (error) {
