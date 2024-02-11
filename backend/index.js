@@ -131,16 +131,16 @@ app.post("/api/save-to-database", upload.single("file"), async (req, res) => {
       const fileData = fs.readFileSync(req.file.path);
 
       // Prepare the SQL query to insert the file data into the database
-      const sql = "INSERT INTO files (pdf, image, json) VALUES (?, ?, ?)";
+      const sql = "INSERT INTO files (image, pdf,  json) VALUES (?, ?, ?)";
 
       const connection = await pool.getConnection();
 
       const [result] = await connection.query(sql, [fileData, image, json]);
 
-      console.log("File inserted into database successfully");
+      console.log("File inserted into database successfully", result);
       return res
         .status(200)
-        .json({ message: "File saved to database successfully" });
+        .json({ message: "File saved to database successfully : " + result.insertId });
     } else {
       // No file was provided
       res.status(400).json({ message: "No file provided" });
@@ -187,28 +187,40 @@ app.get("/api/download-from-database/:fileId", async (req, res) => {
   }
 });
 
-
 //WORKING API (can receive file and data from frontend)
-app.post("/api/upload", upload.fields([{ name: "image" }, { name: "jsonData" }]), (req, res) => {
-  try {
-    const imageFile = req.files["image"][0]; // Access the image file
-    const jsonData = JSON.parse(req.body.jsonData); // Access the JSON data
+app.post(
+  "/api/upload",
+  upload.fields([{ name: "image" }, { name: "jsonData" }]),
+  (req, res) => {
+    try {
+      const imageFile = req.files["image"][0]; // Access the image file
+      const jsonData = JSON.parse(req.body.jsonData); // Access the JSON data
 
-    // Your logic to handle the image file and JSON data
+      // Your logic to handle the image file and JSON data
 
-    console.log("jsonData:", jsonData);
-    console.log("imageFile:", imageFile); // Log the image file path and buffer to the console
+      console.log("jsonData:", jsonData);
+      console.log("imageFile:", imageFile); // Log the image file path and buffer to the console
 
-    res.status(200).json({ message: "File and JSON data uploaded successfully" });
-  } catch (error) {
-    console.error("Error uploading file:", error);
-    res.status(500).json({ message: "Internal server error" });
+      console.log("fieldNames:", imageFile.fieldname);
+      console.log("originalName:", imageFile.originalname);
+      console.log("size:", imageFile.size);
+      console.log("mimetype:", imageFile.mimetype);
+
+      const fileData = fs.readFileSync(imageFile.path);
+
+      console.log("fileData:", fileData);
+
+      res
+        .status(200)
+        .json({ message: "File and JSON data uploaded successfully" });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   }
-});
+);
 
-
-
-app.post('/api/upload-form', upload.single('file'), async (req, res) => {
+app.post("/api/upload-form", upload.single("file"), async (req, res) => {
   const { name, email } = req.body;
   const file = req.file;
 
@@ -218,10 +230,6 @@ app.post('/api/upload-form', upload.single('file'), async (req, res) => {
 
   res.sendStatus(200);
 });
-
-
-
-
 
 app.get("/", (req, res) => {
   res.send("Upload file ready!");
