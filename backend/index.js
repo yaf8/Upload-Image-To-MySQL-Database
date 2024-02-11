@@ -188,6 +188,7 @@ app.get("/api/download-from-database/:fileId", async (req, res) => {
 });
 
 
+//WORKING API (can receive file and data from frontend)
 app.post("/api/upload", upload.fields([{ name: "image" }, { name: "jsonData" }]), (req, res) => {
   try {
     const imageFile = req.files["image"][0]; // Access the image file
