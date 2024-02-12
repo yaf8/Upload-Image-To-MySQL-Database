@@ -8,7 +8,6 @@ function FileDownloadDatabase() {
 
   const downloadFile = async () => {
     try {
-
       // Make a GET request to the endpoint that serves the image file
       const response = await axios.get(
         `${RootURL}/api/download-from-database/${dbId}`,

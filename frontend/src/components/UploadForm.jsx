@@ -12,7 +12,15 @@ function UploadForm() {
   const handleFileInputChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      setSelectedImage(file);
+      // Check if the file type starts with 'image/'
+      if (file.type && file.type.startsWith("image/")) {
+        setSelectedImage(file); // Set the file as the selected image
+      } else {
+        console.error("Selected file is not an image.");
+        
+        setSelectedImage(null);
+        
+      }
     }
   };
 
@@ -25,8 +33,8 @@ function UploadForm() {
       const formData = new FormData();
       formData.append("image", selectedImage);
       formData.append("jsonData", JSON.stringify(jsonData));
-      formData.append("name", name);
-      formData.append("email", email);
+
+      console.log(selectedImage);
 
       const response = await axios.post(RootURL + "/api/upload", formData, {
         headers: {
